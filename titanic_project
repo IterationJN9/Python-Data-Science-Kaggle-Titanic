@@ -1,0 +1,85 @@
+#This Python program explores data science and machine learning
+#by using Kaggle's Titanic dataset. 
+
+#Import libraries to be used.
+import csv as csv
+import math as m
+import numpy as np
+import pandas as pd
+from sklearn import tree
+from sklearn.ensemble import RandomForestClassifier
+
+pd.options.mode.chained_assignment = None
+
+#Get the csv file from online and read it with Pandas.
+
+train_online_file = "http://s3.amazonaws.com/assets.datacamp.com/course/Kaggle/train.csv"
+data = pd.read_csv(train_online_file)
+
+#Look at the data.
+print(data.describe())
+print(data.shape)
+
+#Calculate the number of passengers and survivors.
+number_passengers = data["PassengerId"].value_counts()
+number_survived = data["Survived"].value_counts()
+proportion_survivors = data["Survived"].value_counts(normalize = True)
+
+print("0 indicates did not survive, 1 indicates did survive.")
+print(proportion_survivors)
+
+#Convert the sex of the passengers to numerical form.
+data["Sex"][data["Sex"] == "female"] = 0
+data["Sex"][data["Sex"] == "male"] = 1
+
+#Impute the Age variable to fill in missing values with the median age.
+data["Age"] = data["Age"].fillna(data["Age"].median())
+
+#Impute the Embarked variable to fill in missing values
+data["Embarked"] = data["Embarked"].fillna("S")
+
+#Convert the Embarked variable to numerical form.
+data["Embarked"][data["Embarked"] == "S"] = 0
+data["Embarked"][data["Embarked"] == "C"] = 1
+data["Embarked"][data["Embarked"] == "Q"] = 2
+
+#Set up the target variable to Survived since we want to see if we can predict chances of survival.
+target = data["Survived"].values
+
+#1) Create the first decision tree looking at the class, sex, age, and fare of the passengers.
+
+#Select the values of the traits.
+traits_1 = data[["Pclass", "Sex", "Age", "Fare"]].values
+
+#Fit the decision tree, then print it.
+dectree_1 = tree.DecisionTreeClassifier()
+dectree_1 = dectree_1.fit(traits_1, target)
+
+print("Looking at passenger class, sex, age, and fare, the chances of surviving are ")
+print(dectree_1.feature_importances_)
+
+
+#2) Create the second decision tree looking at class, sex, age, fare, 
+# siblings/spouses aboard, parents/children aboard, and embarked.
+
+#Select the values of the traits.
+traits_2 = data[["Pclass", "Sex", "Age", "Fare", "SibSp", "Parch", "Embarked"]].values
+
+#Fit the decision tree and control for overfitting, then print it.
+dectree_2 = tree.DecisionTreeClassifier(max_depth=10, min_samples_split=5, random_state=1)
+dectree_2 = dectree_1.fit(traits_2, target)
+
+print("Looking at passenger class, sex, age, fare, siblings/spouses on board, parents/children on board, the chances of surviving are ")
+print(dectree_2.feature_importances_)
+
+#3) Create a random forest.
+
+#Select the values of the traits.
+traits_forest = data[["Pclass", "Sex", "Age", "Fare", "SibSp", "Parch", "Embarked"]].values
+
+#Fit the decision tree, then print it.
+forest = RandomForestClassifier(max_depth=10, min_samples_split=2, n_estimators=100, random_state=1)
+forest_1 = forest.fit(traits_forest, target)
+
+print("Looking at passenger class, sex, age, fare, siblings/spouses on board, parents/children on board, the chances of surviving are ")
+print(forest_1.feature_importances_)
